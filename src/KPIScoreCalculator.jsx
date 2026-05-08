@@ -22,14 +22,88 @@ function findCol(headers, ...keys) {
   return -1;
 }
 
-function ScoreCell({ value }) {
+function ScoreCell({ value, onCopy }) {
+  const [showCopy, setShowCopy] = useState(false);
   const cls =
     value > 0
       ? "text-emerald-600 dark:text-emerald-400 font-medium"
       : value < 0
         ? "text-red-500 dark:text-red-400 font-medium"
         : "text-gray-400 dark:text-gray-500";
-  return <span className={cls}>{value.toFixed(2)}</span>;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value.toFixed(2));
+    if (onCopy) onCopy();
+  };
+
+  return (
+    <div
+      className="relative inline-flex items-center gap-1 group cursor-pointer"
+      onMouseEnter={() => setShowCopy(true)}
+      onMouseLeave={() => setShowCopy(false)}
+      onClick={handleCopy}
+      title="Click to copy"
+    >
+      <span className={cls}>{value.toFixed(2)}</span>
+      {showCopy && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
+        </svg>
+      )}
+    </div>
+  );
+}
+
+function FinalPointCell({ value, onCopy }) {
+  const [showCopy, setShowCopy] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value.toFixed(2));
+    if (onCopy) onCopy();
+  };
+
+  return (
+    <div
+      className="relative inline-flex items-center gap-1 group cursor-pointer"
+      onMouseEnter={() => setShowCopy(true)}
+      onMouseLeave={() => setShowCopy(false)}
+      onClick={handleCopy}
+      title="Click to copy"
+    >
+      <span
+        className={`font-semibold text-xs ${value > 0 ? "text-blue-600 dark:text-blue-400" : value < 0 ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-gray-500"}`}
+      >
+        {value.toFixed(2)}
+      </span>
+      {showCopy && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
+        </svg>
+      )}
+    </div>
+  );
 }
 
 function TrackerBadge({ tracker }) {
@@ -64,6 +138,7 @@ export default function KPIScoreCalculator() {
   const [editingQuality, setEditingQuality] = useState(null);
   const [editingQualityPercent, setEditingQualityPercent] = useState("");
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
 
   function processRows(rawRows) {
     if (rawRows.length < 2) return;
@@ -81,7 +156,11 @@ export default function KPIScoreCalculator() {
         const est = parseFloat(r[iEst]) || 0;
         const spent = parseFloat(r[iSpent]) || 0;
         const score = est - spent;
-        const taskScore = score + est;
+
+        const taskScore =
+          score < 0
+            ? est + Math.abs(score) 
+            : est - score;
         const onTimeScore = (onTimePercent / 100) * taskScore;
         const qualityScore = (qualityPercent / 100) * taskScore;
         const finalPoint = taskScore + onTimeScore + qualityScore;
@@ -140,6 +219,11 @@ export default function KPIScoreCalculator() {
     setDragging(false);
     handleFile(e.dataTransfer.files[0]);
   }, []);
+
+  const handleCopySuccess = () => {
+    setCopyMessage("Copied!");
+    setTimeout(() => setCopyMessage(""), 1500);
+  };
 
   const handleOnTimeChange = (index, value) => {
     const updatedRows = [...rows];
@@ -529,6 +613,13 @@ export default function KPIScoreCalculator() {
           </div>
         </div>
 
+        {/* Copy Success Message */}
+        {copyMessage && (
+          <div className="fixed bottom-4 right-4 z-50 bg-green-500 text-white text-xs px-3 py-2 rounded-lg shadow-lg animate-pulse">
+            {copyMessage}
+          </div>
+        )}
+
         {/* Settings Panel */}
         {showSettings && rows.length > 0 && (
           <div
@@ -816,10 +907,16 @@ export default function KPIScoreCalculator() {
                           {r.spent.toFixed(2)}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          <ScoreCell value={r.taskScore} />
+                          <ScoreCell
+                            value={r.taskScore}
+                            onCopy={handleCopySuccess}
+                          />
                         </td>
                         <td className="px-2 py-2 text-right">
-                          <ScoreCell value={r.onTimeScore} />
+                          <ScoreCell
+                            value={r.onTimeScore}
+                            onCopy={handleCopySuccess}
+                          />
                         </td>
                         <td className="px-2 py-2 text-right">
                           {editingQuality === i ? (
@@ -848,29 +945,33 @@ export default function KPIScoreCalculator() {
                               <span className="text-[10px]">%</span>
                             </div>
                           ) : (
-                            <span
-                              onClick={() => {
-                                setEditingQuality(i);
-                                setEditingQualityPercent(
-                                  r.qualityPercentValue?.toString() ||
-                                    qualityPercent.toString(),
-                                );
-                              }}
-                              className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-1 py-0.5 rounded inline-block"
-                            >
-                              <ScoreCell value={r.qualityScore} />
-                              <span className="text-[10px] ml-0.5 text-gray-400">
-                                ({r.qualityPercentValue || qualityPercent}%)
+                            <div className="flex items-center justify-end gap-1">
+                              <span
+                                onClick={() => {
+                                  setEditingQuality(i);
+                                  setEditingQualityPercent(
+                                    r.qualityPercentValue?.toString() ||
+                                      qualityPercent.toString(),
+                                  );
+                                }}
+                                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-1 py-0.5 rounded inline-flex items-center gap-1"
+                              >
+                                <ScoreCell
+                                  value={r.qualityScore}
+                                  onCopy={handleCopySuccess}
+                                />
+                                <span className="text-[10px] text-gray-400">
+                                  ({r.qualityPercentValue || qualityPercent}%)
+                                </span>
                               </span>
-                            </span>
+                            </div>
                           )}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          <span
-                            className={`font-semibold text-xs ${r.finalPoint > 0 ? (darkMode ? "text-blue-400" : "text-blue-600") : r.finalPoint < 0 ? "text-red-500 dark:text-red-400" : darkMode ? "text-gray-500" : "text-gray-400"}`}
-                          >
-                            {r.finalPoint.toFixed(2)}
-                          </span>
+                          <FinalPointCell
+                            value={r.finalPoint}
+                            onCopy={handleCopySuccess}
+                          />
                         </td>
                       </tr>
                     ))
