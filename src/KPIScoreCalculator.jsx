@@ -157,7 +157,7 @@ export default function KPIScoreCalculator() {
         const spent = parseFloat(r[iSpent]) || 0;
         const score = est - spent;
 
-        const taskScore = score > 0 ? score - est : score + est;
+        const taskScore = score < 0 ? score + est : est - score;
         const onTimeScore = (onTimePercent / 100) * taskScore;
         const qualityScore = (qualityPercent / 100) * taskScore;
         const finalPoint = taskScore + onTimeScore + qualityScore;
