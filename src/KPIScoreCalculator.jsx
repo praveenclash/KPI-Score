@@ -199,7 +199,7 @@ export default function KPIScoreCalculator() {
 
   const handleOnTimePercentChange = (value) => {
     const num = parseFloat(value);
-    if (!isNaN(num) && num >= 0 && num <= 100) {
+    if (!isNaN(num) && num <= 100) {
       setOnTimePercent(num);
       if (rows.length > 0) {
         const updatedRows = rows.map((r) => {
@@ -557,7 +557,7 @@ export default function KPIScoreCalculator() {
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
-                    min="0"
+                    min="-100"
                     max="100"
                     step="1"
                     value={onTimePercent}
@@ -565,8 +565,8 @@ export default function KPIScoreCalculator() {
                     className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200 dark:bg-gray-700"
                   />
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
+                    min="-100"
                     max="100"
                     step="1"
                     value={onTimePercent}
@@ -589,7 +589,7 @@ export default function KPIScoreCalculator() {
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
-                    min="0"
+                    min="-100"
                     max="100"
                     step="1"
                     value={qualityPercent}
@@ -597,8 +597,8 @@ export default function KPIScoreCalculator() {
                     className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200 dark:bg-gray-700"
                   />
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
+                    min="-100"
                     max="100"
                     step="1"
                     value={qualityPercent}
