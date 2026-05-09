@@ -131,7 +131,7 @@ export default function KPIScoreCalculator() {
   const [trackerFilter, setTrackerFilter] = useState("");
   const [scoreFilter, setScoreFilter] = useState("");
   const [dragging, setDragging] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [qualityPercent, setQualityPercent] = useState(5);
   const [onTimePercent, setOnTimePercent] = useState(5);
